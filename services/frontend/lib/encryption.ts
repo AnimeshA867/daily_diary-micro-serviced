@@ -4,31 +4,7 @@
  */
 
 import { apiClient } from "./api-client";
-
-// Generate a consistent encryption key for a user based on their user ID
-async function deriveKey(userId: string, salt: string): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(userId + salt),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits", "deriveKey"]
-  );
-
-  return crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: encoder.encode(salt),
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-}
+import { decryptContentWithSalt, encryptContentWithSalt, generateSalt } from "./crypto-compat";
 
 // Get or generate a salt for the user (store in database via Auth Service)
 async function getUserSalt(userId: string): Promise<string> {
@@ -38,11 +14,7 @@ async function getUserSalt(userId: string): Promise<string> {
   } catch (error) {
     // If no salt exists, generate a new one
     console.log("Generating new salt for user");
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    const salt = Array.from(array, (byte) =>
-      byte.toString(16).padStart(2, "0")
-    ).join("");
+    const salt = generateSalt();
 
     // Store the new salt in database via API
     await apiClient.post<{ salt: string }>("/api/auth/salt", { salt });
@@ -61,27 +33,8 @@ export async function encryptContent(
   userId: string
 ): Promise<string> {
   try {
-    const encoder = new TextEncoder();
     const salt = await getUserSalt(userId);
-    const key = await deriveKey(userId, salt);
-
-    // Generate a random IV for this encryption
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-
-    // Encrypt the content
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encoder.encode(content)
-    );
-
-    // Combine IV and encrypted data
-    const combined = new Uint8Array(iv.length + encrypted.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(encrypted), iv.length);
-
-    // Convert to base64 for storage
-    return btoa(String.fromCharCode(...combined));
+    return encryptContentWithSalt(content, userId, salt);
   } catch (error) {
     console.error("Encryption failed:", error);
     throw new Error("Failed to encrypt content");
@@ -108,38 +61,10 @@ export async function decryptContent(
     const salt = await getUserSalt(userId);
     console.log("Salt retrieved:", salt.substring(0, 8) + "...");
 
-    const key = await deriveKey(userId, salt);
-    console.log("Key derived successfully");
-
-    // Decode from base64
-    const combined = Uint8Array.from(atob(encryptedContent), (c) =>
-      c.charCodeAt(0)
-    );
-    console.log("Base64 decoded, total bytes:", combined.length);
-
-    // Extract IV and encrypted data
-    const iv = combined.slice(0, 12);
-    const encrypted = combined.slice(12);
-    console.log(
-      "IV extracted:",
-      iv.length,
-      "bytes, Encrypted data:",
-      encrypted.length,
-      "bytes"
-    );
-
-    // Decrypt the content
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encrypted
-    );
+    const decryptedContent = decryptContentWithSalt(encryptedContent, userId, salt);
     console.log("Decryption successful");
-
-    const decoder = new TextDecoder();
-    const result = decoder.decode(decrypted);
-    console.log("Content decoded, length:", result.length);
-    return result;
+    console.log("Content decoded, length:", decryptedContent.length);
+    return decryptedContent;
   } catch (error) {
     console.error("Decryption failed with error:", error);
     throw new Error("Failed to decrypt content");

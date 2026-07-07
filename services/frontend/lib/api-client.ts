@@ -13,7 +13,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
   const headers = new Headers(options.headers);
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
-  }
+  } // Ensure session cookies are sent
 
   const mergedOptions: RequestInit = {
     ...options,
@@ -43,22 +43,24 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
 export const apiClient = {
   get: <T>(endpoint: string, options?: RequestInit) =>
-    apiFetch<T>(endpoint, { ...options, method: "GET" }),
+    apiFetch<T>(endpoint, { ...options, method: "GET", credentials: "include" // Ensure session cookies are sent 
+    }),
     
   post: <T>(endpoint: string, body?: any, options?: RequestInit) =>
     apiFetch<T>(endpoint, {
       ...options,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : undefined // Ensure session cookies are sent
     }),
     
   put: <T>(endpoint: string, body?: any, options?: RequestInit) =>
     apiFetch<T>(endpoint, {
       ...options,
       method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : undefined, credentials: "include" // Ensure session cookies are sent
     }),
     
   delete: <T>(endpoint: string, options?: RequestInit) =>
-    apiFetch<T>(endpoint, { ...options, method: "DELETE" }),
+    apiFetch<T>(endpoint, { ...options, method: "DELETE", credentials: "include" // Ensure session cookies are sent 
+    }),
 };

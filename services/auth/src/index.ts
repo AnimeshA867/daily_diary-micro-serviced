@@ -12,6 +12,14 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || "krypt_shared_jwt_secret_key_12345";
+const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
+const sessionCookieOptions = {
+  httpOnly: true,
+  secure: COOKIE_SECURE,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 // Prometheus Metrics Setup
 const register = new client.Registry();
@@ -117,12 +125,7 @@ app.post("/api/auth/register", async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
     // Set cookie
-    res.cookie("krypt_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie("krypt_session", token, sessionCookieOptions);
 
     return res.status(201).json({ user: { id: user.id, email: user.email } });
   } catch (error: any) {
@@ -154,12 +157,7 @@ app.post("/api/auth/login", async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
     // Set cookie
-    res.cookie("krypt_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie("krypt_session", token, sessionCookieOptions);
 
     return res.status(200).json({ user: { id: user.id, email: user.email } });
   } catch (error: any) {
@@ -170,7 +168,12 @@ app.post("/api/auth/login", async (req: Request, res: Response) => {
 
 // Logout
 app.post("/api/auth/logout", (req: Request, res: Response) => {
-  res.clearCookie("krypt_session");
+  res.clearCookie("krypt_session", {
+    httpOnly: true,
+    secure: COOKIE_SECURE,
+    sameSite: "lax",
+    path: "/",
+  });
   return res.status(200).json({ message: "Logged out successfully" });
 });
 

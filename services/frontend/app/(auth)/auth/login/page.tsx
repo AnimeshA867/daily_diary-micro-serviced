@@ -25,7 +25,7 @@ function LoginContent() {
       await apiClient.post("/api/auth/login", {
         email,
         password,
-      })
+      },)
       // Use window.location for full page navigation to ensure middleware and cookies are refreshed
       window.location.href = "/diary"
     } catch (err: any) {

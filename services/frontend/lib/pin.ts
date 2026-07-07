@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from "./api-client";
+import { generateSalt, hashPin } from "./crypto-compat";
 
 export interface UserSettings {
   pin_hash: string | null;
@@ -13,28 +14,6 @@ export interface UserSettings {
 
 const PIN_SESSION_KEY = "diary_pin_unlocked";
 const PIN_SESSION_EXPIRY = 30 * 60 * 1000; // 30 minutes
-
-/**
- * Hash a PIN using Web Crypto API (SHA-256 + salt)
- */
-async function hashPin(pin: string, salt: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin + salt);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/**
- * Generate a random salt
- */
-function generateSalt(): string {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return Array.from(array)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 /**
  * Get user settings from Auth API

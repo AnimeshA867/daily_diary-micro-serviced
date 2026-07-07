@@ -62,89 +62,18 @@ jobs:
           NEXT_PUBLIC_API_GATEWAY_URL: ""
           JWT_SECRET: "temp_jwt_secret_key_for_compilation"
 
-  # Job 2: Build Docker Images and Publish to Docker Hub
-  build_and_publish_docker:
-    name: Build & Publish Docker Images
+  # Job 2: Continuous Deployment (CD) on the self-hosted VM
+  deploy_to_server:
+    name: Deploy to Server
     needs: test_and_verify
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' # Only publish on merges/pushes, not PRs
+    runs-on: self-hosted
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: actions/docker-setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: actions/docker-login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Build and push Auth service
-      - name: Build and Push Auth Service Image
-        uses: actions/docker-build-push-action@v5
-        with:
-          context: ./services/auth
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/krypt-auth:latest
-            ${{ secrets.DOCKER_USERNAME }}/krypt-auth:${{ github.sha }}
-
-      # Build and push Diary service
-      - name: Build and Push Diary Service Image
-        uses: actions/docker-build-push-action@v5
-        with:
-          context: ./services/diary
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/krypt-diary:latest
-            ${{ secrets.DOCKER_USERNAME }}/krypt-diary:${{ github.sha }}
-
-      # Build and push Streak service
-      - name: Build and Push Streak Service Image
-        uses: actions/docker-build-push-action@v5
-        with:
-          context: ./services/streak
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/krypt-streak:latest
-            ${{ secrets.DOCKER_USERNAME }}/krypt-streak:${{ github.sha }}
-
-      # Build and push Next.js Frontend service
-      - name: Build and Push Frontend Image
-        uses: actions/docker-build-push-action@v5
-        with:
-          context: ./services/frontend
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/krypt-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/krypt-frontend:${{ github.sha }}
-
-  # Job 3: Continuous Deployment (CD) to Server
-  deploy_to_server:
-    name: Deploy to Server
-    needs: build_and_publish_docker
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Deploy to Remote Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            cd /opt/krypt
-            
-            # Pull latest docker images
-            docker compose pull
-            
-            # Restart containers using new images
-            docker compose up -d
-            
-            # Clean up old dangling images to save space
-            docker image prune -f
+      - name: Deploy locally on the VM
+        run: |
+          chmod +x deploy.sh
+          ./deploy.sh
