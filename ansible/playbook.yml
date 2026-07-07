@@ -1,0 +1,116 @@
+---
+# ==============================================================================
+# Ansible Playbook for Krypt Microservices Deployment Configuration
+# ------------------------------------------------------------------------------
+# Installs system dependencies, configures yum/dnf repositories, installs Docker,
+# sets up firewall rules, copies project files, and launches the microservices
+# stack on a single Alma Linux (RHEL-based) server instance.
+# ==============================================================================
+
+- name: Configure krypt microservices server (Alma Linux)
+  hosts: krypt_servers
+  become: yes
+  vars:
+    project_dir: "/opt/krypt"
+    server_user: "alma"      # Change to rocky, ec2-user, or root depending on cloud host
+    # Populate these in a secure vars file or CLI arguments
+    jwt_secret: "prod_shared_jwt_secret_key_change_me"
+    db_password: "prod_postgres_password_change_me"
+
+  tasks:
+    # 1. Update package database and install base tools
+    - name: Install system base tools
+      dnf:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+          - git
+          - curl
+        state: present
+        update_cache: yes
+
+    # 2. Add Docker CE official repository
+    # - name: Add Docker CE repository
+    #   get_url:
+    #     url: https://download.docker.com/linux/centos/docker-ce.repo
+    #     dest: /etc/yum.repos.d/docker-ce.repo
+    #     mode: '0644'
+
+    # 3. Install Docker Engine and compose plugin
+    # - name: Install Docker and Docker Compose Plugin
+    #   dnf:
+    #     name:
+    #       - docker-ce
+    #       - docker-ce-cli
+    #       - containerd.io
+    #       - docker-compose-plugin
+    #     state: present
+
+    # 4. Ensure Docker is enabled and running
+    # - name: Start and enable Docker service
+    #   systemd:
+    #     name: docker
+    #     state: started
+    #     enabled: yes
+
+    # 5. Open firewall ports for public traffic and monitoring
+    # - name: Configure firewalld rules
+    #   firewalld:
+    #     port: "{{ item }}"
+    #     permanent: yes
+    #     state: enabled
+    #     immediate: yes
+    #   loop:
+    #     - 80/tcp    # HTTP gateway
+    #     - 443/tcp   # HTTPS gateway
+    #     - 4000/tcp  # Grafana Dashboard
+    #     - 15672/tcp # RabbitMQ Console
+
+    # 6. Copy project configurations and services
+    - name: Create project root directory
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: "{{ server_user }}"
+        group: "{{ server_user }}"
+        mode: '0755'
+
+    - name: Copy project code files to target directory
+      synchronize:
+        src: "../"
+        dest: "{{ project_dir }}"
+        recursive: yes
+        delete: yes
+      # Run this task locally to sync files over SSH
+      delegate_to: localhost
+      become: no
+
+    # 7. Generate secure production environment variables
+    - name: Setup environment variables file
+      copy:
+        dest: "{{ project_dir }}/.env"
+        content: |
+          JWT_SECRET={{ jwt_secret }}
+          DATABASE_PASSWORD={{ db_password }}
+          NODE_ENV=production
+        owner: "{{ server_user }}"
+        group: "{{ server_user }}"
+        mode: '0600'
+
+    # 8. Configure SELinux contexts for directory mounts
+    # - name: Apply SELinux file contexts recursively
+    #   file:
+    #     path: "{{ project_dir }}"
+    #     seuser: system_u
+    #     serole: object_r
+    #     setype: svirt_sandbox_file_t
+    #     recurse: yes
+
+    # 9. Launch docker-compose stack
+    # - name: Boot the docker-compose application services
+    #   docker_compose:
+    #     project_src: "{{ project_dir }}"
+    #     build: yes
+    #     state: present
+    #     recreate: always

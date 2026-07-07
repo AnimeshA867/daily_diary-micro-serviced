@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: diary-service
+  namespace: krypt
+spec:
+  ports:
+    - port: 5002
+  selector:
+    app: diary-service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diary-service
+  namespace: krypt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diary-service
+  template:
+    metadata:
+      labels:
+        app: diary-service
+    spec:
+      containers:
+        - name: diary-service
+          image: krypt-diary-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+          env:
+            - name: PORT
+              value: "5002"
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: krypt-config
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: krypt-secrets
+                  key: JWT_SECRET
+            - name: RABBITMQ_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: krypt-config
+                  key: RABBITMQ_URL
+            - name: NODE_ENV
+              value: "production"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 20
+            periodSeconds: 10
