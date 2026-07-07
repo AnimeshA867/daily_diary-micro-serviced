@@ -8,13 +8,13 @@
 terraform {
   required_version = ">= 1.5.0"
   
-  # Configure your remote backend for storing state securely (e.g., S3 + DynamoDB lock)
-  # backend "s3" {
-  #   bucket         = "my-krypt-tf-state-bucket"
-  #   key            = "prod/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "my-krypt-tf-state-locks"
-  # }
+  # Configure remote backend for storing state securely (e.g., S3 + DynamoDB lock)
+  backend "s3" {
+    bucket         = "my-krypt-tf-state-bucket"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "my-krypt-tf-state-locks"
+  }
 
   required_providers {
     aws = {
