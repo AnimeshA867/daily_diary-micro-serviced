@@ -34,3 +34,8 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+promethius.yml
+
+**/ansible
+**/terraform
