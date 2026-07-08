@@ -1,10 +1,7 @@
-version: '3.8'
-
 services:
   # 1. PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: krypt-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password_1234
@@ -23,7 +20,6 @@ services:
   # 2. Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: krypt-redis
     ports:
       - "6379:6379"
     volumes:
@@ -37,7 +33,6 @@ services:
   # 3. RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: krypt-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672" # Management Web UI
@@ -55,7 +50,6 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     image: krypt-auth-service:latest
-    container_name: krypt-auth-service
     environment:
       - PORT=5001
       - DATABASE_URL=postgres://postgres:postgres_password_1234@postgres:5432/postgres
@@ -73,7 +67,6 @@ services:
       context: ./services/diary
       dockerfile: Dockerfile
     image: krypt-diary-service:latest
-    container_name: krypt-diary-service
     environment:
       - PORT=5002
       - DATABASE_URL=postgres://postgres:postgres_password_1234@postgres:5432/postgres
@@ -94,7 +87,6 @@ services:
       context: ./services/streak
       dockerfile: Dockerfile
     image: krypt-streak-service:latest
-    container_name: krypt-streak-service
     environment:
       - PORT=5003
       - DATABASE_URL=postgres://postgres:postgres_password_1234@postgres:5432/postgres
@@ -118,7 +110,6 @@ services:
       context: ./services/frontend
       dockerfile: Dockerfile
     image: krypt-frontend-service:latest
-    container_name: krypt-frontend-service
     environment:
       - PORT=3000
       - HOST=0.0.0.0
@@ -134,7 +125,6 @@ services:
   # 8. API Gateway (Nginx)
   gateway:
     image: nginx:alpine
-    container_name: krypt-api-gateway
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -148,7 +138,6 @@ services:
   # 9. Prometheus Monitoring
   prometheus:
     image: prom/prometheus:v2.45.0
-    container_name: krypt-prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command:
@@ -163,7 +152,6 @@ services:
   # 10. Grafana Analytics
   grafana:
     image: grafana/grafana:10.0.0
-    container_name: krypt-grafana
     ports:
       - "4000:3000"
     volumes:
