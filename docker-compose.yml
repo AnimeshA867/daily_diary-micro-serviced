@@ -54,6 +54,7 @@ services:
     build:
       context: ./services/auth
       dockerfile: Dockerfile
+    image: krypt-auth-service:latest
     container_name: krypt-auth-service
     environment:
       - PORT=5001
@@ -71,6 +72,7 @@ services:
     build:
       context: ./services/diary
       dockerfile: Dockerfile
+    image: krypt-diary-service:latest
     container_name: krypt-diary-service
     environment:
       - PORT=5002
@@ -91,6 +93,7 @@ services:
     build:
       context: ./services/streak
       dockerfile: Dockerfile
+    image: krypt-streak-service:latest
     container_name: krypt-streak-service
     environment:
       - PORT=5003
@@ -114,6 +117,7 @@ services:
     build:
       context: ./services/frontend
       dockerfile: Dockerfile
+    image: krypt-frontend-service:latest
     container_name: krypt-frontend-service
     environment:
       - PORT=3000

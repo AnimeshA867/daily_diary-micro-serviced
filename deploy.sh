@@ -58,7 +58,7 @@ if [ ! -f "$ENV_FILE" ]; then
 # Production Secrets
 JWT_SECRET=${JWT_SECRET}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-GF_SECURITY_ADMIN_PASSWORD=admin_grafana_password_123
+GF_SECURITY_ADMIN_PASSWORD=admin
 
 # Environment
 NODE_ENV=production

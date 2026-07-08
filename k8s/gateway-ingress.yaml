@@ -5,14 +5,11 @@ metadata:
   namespace: krypt
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    # Enable cookie affinity if needed, but stateless JWT does not require it
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          # Route auth service
           - path: /api/auth
             pathType: Prefix
             backend:
@@ -21,7 +18,6 @@ spec:
                 port:
                   number: 5001
 
-          # Route diary service
           - path: /api/diary
             pathType: Prefix
             backend:
@@ -30,7 +26,6 @@ spec:
                 port:
                   number: 5002
 
-          # Route streak service
           - path: /api/streak
             pathType: Prefix
             backend:
@@ -39,7 +34,7 @@ spec:
                 port:
                   number: 5003
 
-          # Catch-all route to next.js frontend
+          # Catch-all route to next.js frontend (Must stay last)
           - path: /
             pathType: Prefix
             backend:

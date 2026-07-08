@@ -75,5 +75,4 @@ jobs:
 
       - name: Deploy locally on the VM
         run: |
-          chmod +x deploy.sh
-          ./deploy.sh
+          docker compose -f docker-compose.yml up -d --build
