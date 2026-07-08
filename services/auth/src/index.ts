@@ -21,6 +21,14 @@ const sessionCookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+function requireJwtSecret(): string {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  return JWT_SECRET;
+}
+
 // Prometheus Metrics Setup
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
@@ -100,11 +108,23 @@ const authenticateJWT = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, requireJwtSecret());
+
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      !("userId" in decoded) ||
+      !("email" in decoded)
+    ) {
+      throw new Error("Invalid token payload");
+    }
+
+    const tokenPayload = decoded as {
       userId: string;
       email: string;
     };
-    req.user = { id: decoded.userId, email: decoded.email };
+
+    req.user = { id: tokenPayload.userId, email: tokenPayload.email };
     next();
   } catch (error) {
     return res.status(401).json({ error: "Unauthorized: Invalid token" });
@@ -143,9 +163,13 @@ app.post("/api/auth/register", async (req: Request, res: Response) => {
     const user = insertResult.rows[0];
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      requireJwtSecret(),
+      {
+        expiresIn: "7d",
+      },
+    );
 
     // Set cookie
     res.cookie("krypt_session", token, sessionCookieOptions);
@@ -183,9 +207,13 @@ app.post("/api/auth/login", async (req: Request, res: Response) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      requireJwtSecret(),
+      {
+        expiresIn: "7d",
+      },
+    );
 
     // Set cookie
     res.cookie("krypt_session", token, sessionCookieOptions);
