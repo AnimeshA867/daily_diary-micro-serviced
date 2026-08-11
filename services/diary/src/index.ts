@@ -57,9 +57,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const durationInSeconds = duration[0] + duration[1] / 1e9;
     const route = req.route ? req.route.path : req.path;
     const status = res.statusCode.toString();
-
+    console.log(req.method, req.path, res.statusCode, durationInSeconds)
     httpRequestsTotal.inc({ method: req.method, route, status });
     httpRequestDuration.observe({ method: req.method, route, status }, durationInSeconds);
+
   });
   next();
 });
@@ -75,24 +76,24 @@ async function connectRabbitMQ() {
       console.log(`[RabbitMQ] Connecting to broker at ${RABBITMQ_URL}...`);
       amqpConnection = await amqp.connect(RABBITMQ_URL);
       amqpChannel = await amqpConnection.createChannel();
-      
+
       // Assert direct/topic exchange
       await amqpChannel.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
-      
+
       console.log("[RabbitMQ] Successfully connected and declared exchange.");
-      
+
       amqpConnection.on("error", (err: any) => {
         console.error("[RabbitMQ] Connection error:", err);
         amqpChannel = null;
         setTimeout(connectRabbitMQ, 5000);
       });
-      
+
       amqpConnection.on("close", () => {
         console.warn("[RabbitMQ] Connection closed. Reconnecting...");
         amqpChannel = null;
         setTimeout(connectRabbitMQ, 5000);
       });
-      
+
       break;
     } catch (err: any) {
       console.error(`[RabbitMQ] Connection failed: ${err.message}. Retries left: ${retries - 1}`);
@@ -188,7 +189,7 @@ app.post("/api/diary/entries", authenticateJWT, async (req: AuthRequest, res: Re
         wordCount: word_count || 0,
         timestamp: new Date().toISOString()
       });
-      
+
       const routingKey = "diary.entry.saved";
       amqpChannel.publish(EXCHANGE_NAME, routingKey, Buffer.from(message));
       console.log(`[RabbitMQ] Published event: ${routingKey} for user ${userId} and date ${entry_date}`);
@@ -230,7 +231,7 @@ app.delete("/api/diary/entries", authenticateJWT, async (req: AuthRequest, res: 
         isDeleted: true,
         timestamp: new Date().toISOString()
       });
-      
+
       const routingKey = "diary.entry.saved"; // Reuse key, logic handles deletions
       amqpChannel.publish(EXCHANGE_NAME, routingKey, Buffer.from(message));
       console.log(`[RabbitMQ] Published deletion event: ${routingKey} for user ${userId}`);
