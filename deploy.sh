@@ -129,4 +129,3 @@ echo -e "📊  ${GREEN}Prometheus Server:${NC} http://localhost:9090"
 echo -e "🐰  ${GREEN}RabbitMQ Console:${NC}  http://localhost:15672 (default login: guest / guest)"
 echo -e "----------------------------------------------------"
 echo -e "\n${GREEN}🎉 Krypt Microservices stack successfully running!${NC}\n"
-EOF
