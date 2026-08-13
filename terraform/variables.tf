@@ -27,3 +27,15 @@ variable "ssh_public_key" {
   default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC... dummykey"
   description = "Public SSH key for EC2 instance"
 }
+
+variable "ssh_key_path" {
+  description = "Path to SSH private key for Ansible"
+  type        = string
+  default     = "~/.ssh/krypt_aws.pem"
+}
+
+variable "ansible_user" {
+  description = "Ansible user (typically ubuntu or ec2-user)"
+  type        = string
+  default     = "ubuntu"
+}

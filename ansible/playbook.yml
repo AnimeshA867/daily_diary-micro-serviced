@@ -9,7 +9,7 @@
 
 - name: Configure krypt microservices server (Alma Linux)
   hosts: krypt_servers
-  become: yes
+  become: true
   vars:
     project_dir: "/opt/krypt"
     server_user: "alma"      # Change to rocky, ec2-user, or root depending on cloud host
@@ -47,7 +47,7 @@
           - docker-compose-plugin
         state: present
 
-    # 4. Ensure Docker is enabled and running
+    # 4. Ensure Docker is enabled and running`
     - name: Start and enable Docker service
       systemd:
         name: docker
@@ -85,7 +85,6 @@
         delete: yes
       # Run this task locally to sync files over SSH
       delegate_to: localhost
-      become: no
 
     # 7. Generate secure production environment variables
     - name: Setup environment variables file
