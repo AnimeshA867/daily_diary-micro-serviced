@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: auth-service:latest
-          imagePullPolicy: IfNotPresent
+          image: animesh867/auth-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5001
           env:
@@ -36,7 +36,7 @@ spec:
               value: "5001"
             - name: DATABASE_URL
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: diary-secrets
                   key: DATABASE_URL
             - name: JWT_SECRET
