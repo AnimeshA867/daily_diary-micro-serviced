@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: diary-service
-          image: krypt-diary-service:latest
-          imagePullPolicy: Never
+          image: dairy-service:main
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5002
           env:

@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: krypt-auth-service:latest
-          imagePullPolicy: Never
+          image: auth-service:main
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
           env:
