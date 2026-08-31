@@ -52,6 +52,6 @@ jobs:
                context: ${{ matrix.service.context }}
                file: ${{ matrix.service.dockerfile }}
                push: ${{ github.event_name != 'pull_request' }}
-               tags: ${{ env.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:${{ github.ref_name }}
+               tags: ${{ env.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:latest
                cache-from: type=local,src=/tmp/.buildx-cache
                cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
