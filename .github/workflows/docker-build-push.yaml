@@ -28,10 +28,10 @@ jobs:
                     - name: diary-service
                       context: ./services/diary
                       dockerfile: ./services/diary/Dockerfile
-                    - name: frontend
+                    - name: frontend-service
                       context: ./services/frontend
                       dockerfile: ./services/frontend/Dockerfile
-                    - name: streak
+                    - name: streak-service
                       context: ./services/streak
                       dockerfile: ./services/streak/Dockerfile
         steps:
