@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: streak-service
-          image: krypt-streak-service:latest
-          imagePullPolicy: Never
+          image: krypt-streak-service:main
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5003
           env:
