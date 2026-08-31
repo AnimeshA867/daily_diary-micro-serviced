@@ -1,65 +1,73 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: diary-service
-  namespace: krypt
-spec:
-  ports:
-    - port: 5002
-  selector:
-    app: diary-service
 
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: diary-service
+  name: streak-service
   namespace: krypt
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: diary-service
+      app: streak-service
   template:
     metadata:
       labels:
-        app: diary-service
+        app: streak-service
     spec:
       containers:
-        - name: diary-service
-          image: dairy-service:main
-          imagePullPolicy: IfNotPresent
+        - name: streak-service
+          image: animesh867/streak-service:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 5002
+            - containerPort: 5003
           env:
             - name: PORT
-              value: "5002"
+              value: "5003"
             - name: DATABASE_URL
               valueFrom:
-                configMapKeyRef:
-                  name: krypt-config
+                secretKeyRef:
+                  name: diary-secrets
                   key: DATABASE_URL
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: krypt-secrets
+                  name: diary-secrets
                   key: JWT_SECRET
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: diary-config
+                  key: REDIS_URL
             - name: RABBITMQ_URL
               valueFrom:
                 configMapKeyRef:
-                  name: krypt-config
+                  name: diary-config
                   key: RABBITMQ_URL
             - name: NODE_ENV
               value: "production"
           readinessProbe:
             httpGet:
               path: /health
-              port: 5002
+              port: 5003
             initialDelaySeconds: 15
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 5002
+              port: 5003
             initialDelaySeconds: 20
             periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: streak-service
+  namespace: krypt
+spec:
+  ports:
+    - port: 5003
+  selector:
+    app: streak-service
+
