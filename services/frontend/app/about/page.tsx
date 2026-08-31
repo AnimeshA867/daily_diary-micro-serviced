@@ -15,7 +15,7 @@ export default function AboutPage() {
 
         <div className="prose prose-slate dark:prose-invert max-w-none space-y-8 text-foreground">
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold">Our Mission</h2>
+            <h2 className="text-2xl font-semibold">Our Missions</h2>
             <p className="text-lg">
               Krypt is built on the belief that everyone deserves a
               private, secure space to express their thoughts, track their

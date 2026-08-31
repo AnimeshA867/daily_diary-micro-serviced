@@ -28,8 +28,8 @@ spec:
     spec:
       containers:
         - name: frontend-service
-          image: krypt-frontend-service:latest
-          imagePullPolicy: Never
+          image: krypt-frontend-service:main
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           env:
