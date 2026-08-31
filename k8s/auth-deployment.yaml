@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: auth-service
+          image: auth-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
@@ -37,12 +37,12 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:
-                  name: krypt-config
+                  name: diary-secrets
                   key: DATABASE_URL
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: krypt-secrets
+                  name: diary-secrets
                   key: JWT_SECRET
             - name: NODE_ENV
               value: "production"
